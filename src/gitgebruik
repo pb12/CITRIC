@@ -1,0 +1,6 @@
+HOWTO git
+
+1. Lokale dir <test> maken met de software in submap src
+2. In <test> aanroepen
+git init 
+

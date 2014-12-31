@@ -1,0 +1,82 @@
+CITRIC
+
+This software is a Proof of Concept for traffic classification by causal relationships
+
+1. Preparation
+Platform is 64 bit PC with Linux (tested with Ubuntu 12.04)
+Software is C++ source and must be built by gcc
+Install libraries + headers from: zlib, pcap, and pcre
+Example ubuntu 12.04
+$ sudo apt-get update 
+$ sudo apt-get install libpcre3 libpcre3-dev
+$ sudo apt-get install zlib1g zlib1g-dev
+$ sudo apt-get install libpcap0.8 libpcap0.8-dev libpcap-dev
+
+Install graphviz for praphical representation of the causal trees
+Example ubuntu 12.04
+$ sudo apt-get install graphviz
+
+Unpack the sources (if not already done)
+tar -xvzf CITRIC.tar.gz
+cd CITRIC
+
+Build the sources
+make
+
+
+2. Configuring the settings
+The settings (event time window sizes, modu, whitelists,..) can be found and adjusted in CITRIC.conf.
+The delivered CITRIC conf has settings that can be used with the examples.
+
+
+3. Running CITRIC
+There are some exmple pcaps in the pcap directory
+./CITRIC 10.0.0.20 pcap/hhs.pcap  
+	- 10.0.0.20 is the IP of the observed computer
+	- pcap/hhs.pcap is the traffic that must be analyzed
+
+During the analysis some output is printed on the screen, like new trees and flows without DNS-names.
+Of course you can use grep to make this output more silent, like
+./CITRIC 10.0.0.20 pcap/hhs.pcap | grep CAUSE_USER to show all the user initiated trees.
+or
+./CITRIC 10.0.0.20 pcap/hhs.pcap | grep CAUSE_USER to show all the trees with un unknown cause.
+
+In the directory results/ more detailed results can be found for post-detection analysis.
+
+hhs.stats = overview of classification and detection process
+hhs.log = all flows with cause and tree classification (used for later graphical representation)
+hhs.tree = all trees with info
+hhs.event = cache with latest captured potential events
+hhs.dns = DNS cache with timestamps and DNS flow info
+hhs.flow = more detailed flow info than the .log file
+hhs.http = HTTP flow info
+hhs.dnsstats = observed time between DNS causes and new flows
+hhs.urlstats= observed time between URL causes and new flows
+
+
+4. Graphical representation
+After running CITRIC, each tree can be graphically represented as a graph by showFGG.
+./showFGG -d results/hhs 1
+	- -d = whows the generated .svg graph
+	- results/hhs = log file that is used for the tree building (without .log extension)
+	- 1 = number of the tree that must be drawn
+
+
+5. Other examples
+
+(nu.nl news site with heavy DNS prefetching)
+./CITRIC 10.0.0.20 pcap/nu.pcap
+./showFGG -d results/nu 2
+
+
+(botnet phone home by twitter -> notice the root cause of the flow)
+./CITRIC 10.0.0.20 pcap/twe.pcap
+./showFGG -d results/twe 1
+
+
+
+
+
+
+
+

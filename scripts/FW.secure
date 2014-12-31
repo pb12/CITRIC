@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# FW.default
+# sets  default iptable rules, chains and drop policies
+# after this command all egress initiated communication is continued.
+# P.Burghouwt 2013
+
+#Catch IP-address
+HomeIP=$1
+
+# Clear all Firewall rules
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+
+# Set the default target to DROP of all chains involved here.
+iptables -P INPUT DROP
+iptables -P FORWARD FORWARD
+iptables -P OUTPUT DROP
+
+#Create and fill the whitelist (for ingress initiated input connections)
+iptables -N whitelist
+# put here yor whitelisted rules, like: iptables -I whitelist -s 10.0.0.0/24 -m state -- state NEW -j ACCEPT
+iptables -A whitelist -j RETURN
+
+#Create the blacklist with a pool of 10 dummy addresses
+iptables -N dbl
+iptables -I dbl -s 0.0.0.1 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.2 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.3 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.4 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.5 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.6 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.7 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.8 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.9 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP 
+iptables -I dbl -s 0.0.0.10 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.11 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.12 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.13 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.14 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.15 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.16 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.17 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.18 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+iptables -I dbl -s 0.0.0.19 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP 
+iptables -I dbl -s 0.0.0.20 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP 
+
+
+iptables -A dbl -j RETURN
+#update by 2 instructions:
+#1: iptables -D dbl 10
+#2: iptables -I dbl -s 0.0.0.1 -d 0.0.0.0 -p tcp --sport 0 --dport 0 -j DROP
+
+
+#CASE 1 Normal stateful IP-tables rules for local traffic
+#iptables -A INPUT -i lo -j ACCEPT
+#iptables -A OUTPUT -o lo -j ACCEPT
+#iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+#iptables -A OUTPUT -j whitelist
+#iptables -A OUTPUT -j dbl
+#iptables -A OUTPUT -j ACCEPT
+
+#CASE 2 Normal stateful IP-tables rules for forwarded traffic
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+#iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+#iptables -A OUTPUT -j ACCEPT
+
+#iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -s $HomeIP -j whitelist
+iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -s $HomeIP -j dbl
+#iptables -A FORWARD -m physdev --physdev-out eth1 --physdev-in eth0 -s $HomeIP -j dbl
+iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j ACCEPT
+
+
+#examples of bridging
+#Forward bridge rules (Egress eth0)
+#iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j whitelist
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j 1
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j 2
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j 3
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j 4
+#iptables -A FORWARD -m physdev --physdev-out eth0 --physdev-in eth1 -j activitylist
+#iptables -A FORWARD -j LOG --log-prefix '** OUTBOUND DROP **'
+#iptables -A FORWARD -j REJECT
+
+
+
+

@@ -1,0 +1,7 @@
+TweBotMultipleV1
+- captured 15 feb 2013
+- virtual WIN7 (vmplayer)
+- connect to Twitter (DNS, HTTP, HTTPS) to self made account tlab32768
+TweBotSingleV1
+- One cycle TweBotMultiple of 30s 
+
