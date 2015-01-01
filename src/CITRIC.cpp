@@ -162,16 +162,26 @@ int main(int argc, char *argv[]){
   //UDPUA->open();
 
   //The main event loop
-  printf("5. Starting the main event-loop now.\n\n");
-  ENDPROG=0;
-  do{
-    d=PCAP->getPacketEvent();
-    if((d==1)&&(ENDPROG==0)){
-      PacketAnalyzer->handleEvent();
-    } else sigproc(0);
-    //if(UDPUA->getEvent()==1) UDPUA->dump();
-  }while(1);
- 
+
+  if(live==1){
+     printf("5. Starting the live main event-loop now.\n\n");
+     ENDPROG=0;
+     do{
+       d=PCAP->getPacketEvent();
+       if (d==1) PacketAnalyzer->handleEvent();
+       if(ENDPROG!=0) sigproc(0);
+       //if(UDPUA->getEvent()==1) UDPUA->dump();
+    }while(1);
+  } else {
+     printf("5. Starting the offline main event-loop now.\n\n");
+     ENDPROG=0;
+     do{
+       d=PCAP->getPacketEvent();
+       if((d==1)&&(ENDPROG==0)){
+         PacketAnalyzer->handleEvent();
+       } else sigproc(0);
+     }while(1);
+  }
   //Impossible to reach this
   PCAP->close(DumpMessage, 0);
   printf("EVENTLOOP ENDED?!\n");
